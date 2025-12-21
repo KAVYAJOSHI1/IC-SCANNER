@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AOI IC Verification System - MarkScan AI</title>
+    <meta name="description" content="Advanced Automated Optical Inspection system for IC component verification and counterfeit detection">
+    <style>
+        /* Design System - Deep Slate with Cyan Accents */
+        :root {
+            --background: hsl(222, 47%, 11%);
+            --foreground: hsl(210, 40%, 98%);
+            --card: hsl(217, 33%, 17%);
+            --card-elevated: hsl(217, 33%, 19%);
+            --border: hsl(215, 28%, 27%);
+            --primary: hsl(199, 89%, 48%);
+            --primary-glow: hsl(199, 89%, 58%);
+            --success: hsl(142, 71%, 45%);
+            --destructive: hsl(0, 84%, 60%);
+            --warning: hsl(38, 92%, 50%);
+            --muted: hsl(217, 33%, 22%);
+            --muted-foreground: hsl(215, 20%, 65%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background: var(--background);
+            color: var(--foreground);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 0 40px rgba(56, 189, 248, 0.2);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--primary-glow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--muted-foreground);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--muted);
+            color: var(--primary);
+        }
+
+        .nav-btn.active {
+            background: var(--primary);
+            color: var(--background);
+        }
+
+        .badge {
+            background: var(--destructive);
+            color: white;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 4px;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--background);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-glow);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--destructive);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--foreground);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Vendor Hub */
+        .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .vendor-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .vendor-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+        }
+
+        .vendor-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .quality-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .quality-high {
+            background: rgba(74, 222, 128, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(74, 222, 128, 0.2);
+        }
+
+        .quality-medium {
+            background: rgba(251, 191, 36, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        .lot-item {
+            background: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-top: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .manual-card {
+            border: 2px dashed var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 320px;
+            text-align: center;
+        }
+
+        /* Inspection Dashboard */
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 1.5rem;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            background: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--primary);
+            background: var(--card);
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .image-preview {
+            width: 100%;
+            height: 200px;
+            background: #000;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted-foreground);
+            border: 1px solid var(--border);
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+        }
+
+        .result-indicator {
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            margin: 1.5rem 0;
+            border: 2px solid;
+        }
+
+        .result-pass {
+            background: rgba(74, 222, 128, 0.1);
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        .result-fail {
+            background: rgba(247, 85, 101, 0.1);
+            color: var(--destructive);
+            border-color: var(--destructive);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--muted);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.3s;
+        }
+
+        /* Flagged Queue */
+        .flagged-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .flagged-card {
+            border-left: 4px solid var(--destructive);
+        }
+
+        /* History Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--muted);
+        }
+
+        th, td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-top: 1px solid var(--border);
+        }
+
+        th {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        tr:hover {
+            background: rgba(56, 189, 248, 0.05);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Analytics */
+        .metric-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+
+        .vendor-performance {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .vendor-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        /* Utilities */
+        .hidden { display: none; }
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--destructive); }
+        .text-muted { color: var(--muted-foreground); }
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .mt-2 { margin-top: 1rem; }
+        input[type="file"] { display: none; }
+        input[type="text"], input[type="search"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            background: var(--muted);
+            color: var(--foreground);
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+            .hub-grid, .flagged-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-icon">🔍</div>
+                <h1 class="logo-text">AOI IC Verification</h1>
+            </div>
+            <nav id="nav">
+                <button class="nav-btn active" data-screen="vendors">📦 Vendors & Lots</button>
+                <button class="nav-btn" data-screen="inspection">🔬 Inspection</button>
+                <button class="nav-btn" data-screen="flagged">🚩 Flagged Queue <span id="queue-badge" class="badge hidden">0</span></button>
+                <button class="nav-btn" data-screen="analytics">📊 Analytics</button>
+                <button class="nav-btn" data-screen="history">📋 History</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Vendors Screen -->
+        <div class="screen active" id="vendors-screen">
+            <h2>Select Inspection Mode</h2>
+            <div class="hub-grid" id="vendor-grid"></div>
+        </div>
+
+        <!-- Inspection Screen -->
+        <div class="screen" id="inspection-screen">
+            <div class="dashboard-layout">
+                <div>
+                    <div class="card mb-2">
+                        <h3 id="active-session">No Active Session</h3>
+                        <p class="text-muted" id="session-details">Select a lot or start a manual scan</p>
+                    </div>
+
+                    <div class="card mb-2" id="upload-section">
+                        <div class="upload-zone" id="upload-zone">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">📷</div>
+                            <h3>Upload IC Image</h3>
+                            <p class="text-muted mt-1">Click to select or drag & drop image</p>
+                            <input type="file" id="file-input" accept="image/*">
+                        </div>
+                    </div>
+
+                    <div class="comparison-grid">
+                        <div class="card">
+                            <h4>Captured Marking</h4>
+                            <div class="image-preview" id="captured-preview">Awaiting scan</div>
+                        </div>
+                        <div class="card">
+                            <h4>OEM Reference</h4>
+                            <div class="image-preview" id="reference-preview">-</div>
+                        </div>
+                    </div>
+
+                    <div class="result-indicator hidden" id="result-indicator"></div>
+
+                    <div style="display: flex; gap: 0.75rem;" id="action-buttons">
+                        <button class="btn btn-primary" id="scan-btn" disabled>🔍 Scan & Verify</button>
+                        <button class="btn btn-success" id="approve-btn" disabled>✓ Mark as Pass</button>
+                        <button class="btn btn-danger" id="reject-btn" disabled>✗ Flag as Fail</button>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card mb-2">
+                        <h3>Live Statistics</h3>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value text-success" id="pass-count">0</div>
+                                <div class="text-muted">Passed</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value text-danger" id="fail-count">0</div>
+                                <div class="text-muted">Failed</div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span>Confidence</span>
+                                <span id="confidence-value">-</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="confidence-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-2">
+                        <h4>Detected Marking</h4>
+                        <pre id="detected-marking" style="background: var(--muted); padding: 1rem; border-radius: 6px; font-family: monospace; font-size: 0.875rem;">Awaiting scan...</pre>
+                    </div>
+
+                    <div class="card">
+                        <h4>Expected Marking</h4>
+                        <pre id="expected-marking" style="background: var(--muted); padding: 1rem; border-radius: 6px; font-family: monospace; font-size: 0.875rem;">-</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flagged Queue Screen -->
+        <div class="screen" id="flagged-screen">
+            <h2>Flagged Components Queue</h2>
+            <div class="card mb-2">
+                <input type="search" id="queue-search" placeholder="🔍 Search queue...">
+            </div>
+            <div class="flagged-grid" id="flagged-grid"></div>
+        </div>
+
+        <!-- Analytics Screen -->
+        <div class="screen" id="analytics-screen">
+            <h2>Analytics Dashboard</h2>
+            <div class="metric-cards" id="analytics-metrics"></div>
+            <div class="card mb-2" id="vendor-performance-section"></div>
+            <div class="card" id="lot-performance-section"></div>
+        </div>
+
+        <!-- History Screen -->
+        <div class="screen" id="history-screen">
+            <h2>Audit History</h2>
+            <div class="card mb-2">
+                <input type="search" id="history-search" placeholder="🔍 Search history...">
+            </div>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Vendor</th>
+                            <th>Lot ID</th>
+                            <th>Part Number</th>
+                            <th>Result</th>
+                            <th>Confidence</th>
+                            <th>Operator</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        const state = {
+            flaggedItems: [],
+            historyRecords: [],
+            currentLot: null,
+            stats: { pass: 0, fail: 0 },
+            currentImage: null,
+            scannedData: null
+        };
+
+        const mockImages = [
+            'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400',
+            'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400',
+            'https://images.unsplash.com/photo-1601832705848-f88d61c34773?w=400'
+        ];
+
+        const vendors = [
+            {
+                id: 1,
+                name: 'TechSupply Inc.',
+                quality: 'high',
+                lots: [
+                    { vendor: 'TechSupply Inc.', lotId: 'LOT-2024-001', partNumber: 'IC-STM32F407', quantity: 15 },
+                    { vendor: 'TechSupply Inc.', lotId: 'LOT-2024-002', partNumber: 'IC-ATmega328P', quantity: 25 }
+                ]
+            },
+            {
+                id: 2,
+                name: 'GlobalChip Ltd.',
+                quality: 'medium',
+                lots: [
+                    { vendor: 'GlobalChip Ltd.', lotId: 'LOT-2024-010', partNumber: 'IC-ESP32-WROOM', quantity: 20 }
+                ]
+            },
+            {
+                id: 3,
+                name: 'MicroElectronics Co.',
+                quality: 'high',
+                lots: [
+                    { vendor: 'MicroElectronics Co.', lotId: 'LOT-2024-015', partNumber: 'IC-PIC16F877A', quantity: 30 }
+                ]
+            }
+        ];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderVendors();
+            setupNavigation();
+            setupInspection();
+            generateDummyData();
+            renderHistory();
+        });
+
+        // Navigation
+        function setupNavigation() {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchScreen(btn.dataset.screen));
+            });
+        }
+
+        function switchScreen(screen) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-screen="${screen}"]`).classList.add('active');
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(`${screen}-screen`).classList.add('active');
+
+            if (screen === 'flagged') renderFlaggedQueue();
+            if (screen === 'analytics') renderAnalytics();
+            if (screen === 'history') renderHistory();
+        }
+
+        // Render Vendors
+        function renderVendors() {
+            const grid = document.getElementById('vendor-grid');
+            let html = '';
+
+            vendors.forEach(v => {
+                html += `
+                    <div class="vendor-card">
+                        <div class="vendor-header">
+                            <div>
+                                <h3>${v.name}</h3>
+                                <p class="text-muted">${v.lots.length} active lot(s)</p>
+                            </div>
+                            <span class="quality-badge quality-${v.quality}">
+                                ${v.quality === 'high' ? 'High Quality' : 'Medium Quality'}
+                            </span>
+                        </div>
+                        ${v.lots.map(l => `
+                            <div class="lot-item">
+                                <div>
+                                    <strong>${l.lotId}</strong><br>
+                                    <small class="text-muted">${l.partNumber} • ${l.quantity} units</small>
+                                </div>
+                                <button class="btn btn-primary" onclick="startInspection('${v.name}', '${l.lotId}', '${l.partNumber}', ${l.quantity})">
+                                    📦 Scan Batch
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            });
+
+            html += `
+                <div class="card manual-card">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📤</div>
+                    <h3>Manual Scan</h3>
+                    <p class="text-muted mb-2">For single components, samples, or non-batch items</p>
+                    <button class="btn btn-primary" onclick="startInspection(null, null, null, 0)">Start Manual Scan</button>
+                </div>
+            `;
+
+            grid.innerHTML = html;
+        }
+
+        // Inspection
+        function startInspection(vendor, lotId, partNumber, quantity) {
+            state.currentLot = vendor ? { vendor, lotId, partNumber, quantity } : null;
+            
+            document.getElementById('active-session').textContent = vendor ? `${vendor} - ${lotId}` : 'Manual Scan Mode';
+            document.getElementById('session-details').textContent = vendor 
+                ? `Part: ${partNumber} | ${quantity} units`
+                : 'Upload an image to verify a single component';
+            document.getElementById('expected-marking').textContent = vendor ? `${partNumber}\nLOT: ${lotId}` : '-';
+            
+            resetInspection();
+            switchScreen('inspection');
+        }
+
+        function setupInspection() {
+            const uploadZone = document.getElementById('upload-zone');
+            const fileInput = document.getElementById('file-input');
+            
+            uploadZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleFileUpload);
+            
+            document.getElementById('scan-btn').addEventListener('click', performScan);
+            document.getElementById('approve-btn').addEventListener('click', () => markResult('pass'));
+            document.getElementById('reject-btn').addEventListener('click', () => markResult('fail'));
+        }
+
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                state.currentImage = event.target.result;
+                document.getElementById('captured-preview').innerHTML = `<img src="${state.currentImage}" alt="Captured IC">`;
+                document.getElementById('scan-btn').disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function performScan() {
+            if (!state.currentImage) return;
+            
+            document.getElementById('scan-btn').disabled = true;
+            document.getElementById('scan-btn').textContent = '⏳ Analyzing...';
+
+            setTimeout(() => {
+                const confidence = 70 + Math.random() * 30;
+                const result = confidence > 85 ? 'pass' : 'fail';
+
+                state.scannedData = {
+                    result,
+                    confidence,
+                    marking: 'STM32F407VGT6\nLOT: 2024W12'
+                };
+
+                displayResult(state.scannedData);
+                document.getElementById('scan-btn').textContent = '🔍 Scan & Verify';
+                document.getElementById('approve-btn').disabled = false;
+                document.getElementById('reject-btn').disabled = false;
+            }, 2000);
+        }
+
+        function displayResult(data) {
+            const indicator = document.getElementById('result-indicator');
+            indicator.className = `result-indicator result-${data.result}`;
+            indicator.textContent = data.result === 'pass' 
+                ? `✓ Genuine (${Math.round(data.confidence)}%)`
+                : `✗ Counterfeit (${Math.round(data.confidence)}%)`;
+            indicator.classList.remove('hidden');
+
+            document.getElementById('detected-marking').textContent = data.marking;
+            document.getElementById('confidence-value').textContent = `${Math.round(data.confidence)}%`;
+            document.getElementById('confidence-fill').style.width = `${data.confidence}%`;
+            document.getElementById('confidence-fill').style.background = data.result === 'pass' ? 'var(--success)' : 'var(--destructive)';
+        }
+
+        function markResult(decision) {
+            const record = {
+                id: Date.now(),
+                vendor: state.currentLot?.vendor || 'Manual',
+                lotId: state.currentLot?.lotId || 'N/A',
+                partNumber: state.currentLot?.partNumber || 'N/A',
+                result: decision,
+                timestamp: new Date().toISOString(),
+                operator: 'K. Joshi',
+                image: state.currentImage,
+                confidence: state.scannedData?.confidence || 0
+            };
+
+            state.historyRecords.unshift(record);
+            
+            if (decision === 'fail') {
+                state.flaggedItems.unshift(record);
+                state.stats.fail++;
+            } else {
+                state.stats.pass++;
+            }
+
+            document.getElementById('pass-count').textContent = state.stats.pass;
+            document.getElementById('fail-count').textContent = state.stats.fail;
+            updateQueueBadge();
+            resetInspection();
+        }
+
+        function resetInspection() {
+            state.currentImage = null;
+            state.scannedData = null;
+            document.getElementById('captured-preview').innerHTML = 'Awaiting scan';
+            document.getElementById('result-indicator').classList.add('hidden');
+            document.getElementById('scan-btn').disabled = true;
+            document.getElementById('approve-btn').disabled = true;
+            document.getElementById('reject-btn').disabled = true;
+        }
+
+        // Flagged Queue
+        function renderFlaggedQueue() {
+            const grid = document.getElementById('flagged-grid');
+            updateQueueBadge();
+
+            if (state.flaggedItems.length === 0) {
+                grid.innerHTML = '<div class="card"><h3 style="text-align: center;">✅ Queue is Clear</h3><p style="text-align: center;" class="text-muted">No flagged components require review</p></div>';
+                return;
+            }
+
+            grid.innerHTML = state.flaggedItems.map(item => `
+                <div class="card flagged-card">
+                    <h3>${item.partNumber}</h3>
+                    <p class="text-muted">${item.lotId}</p>
+                    ${item.image ? `<div class="image-preview mt-2"><img src="${item.image}" alt="Flagged"></div>` : ''}
+                    <div class="mt-2">
+                        <small class="text-muted">Vendor: ${item.vendor}</small><br>
+                        <small class="text-muted">Confidence: ${Math.round(item.confidence)}%</small>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                        <button class="btn btn-success" onclick="handleFlaggedAction(${item.id}, 'approve')" style="flex: 1;">✓ Mark Legit</button>
+                        <button class="btn btn-outline" onclick="handleFlaggedAction(${item.id}, 'reject')" style="flex: 1;">✗ Confirm Fake</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function handleFlaggedAction(itemId, action) {
+            const index = state.flaggedItems.findIndex(i => i.id === itemId);
+            if (index === -1) return;
+
+            state.flaggedItems.splice(index, 1);
+            
+            if (action === 'approve') {
+                const record = state.historyRecords.find(r => r.id === itemId);
+                if (record) record.result = 'overridden';
+            }
+
+            renderFlaggedQueue();
+        }
+
+        function updateQueueBadge() {
+            const badge = document.getElementById('queue-badge');
+            badge.textContent = state.flaggedItems.length;
+            badge.classList.toggle('hidden', state.flaggedItems.length === 0);
+        }
+
+        // Analytics
+        function renderAnalytics() {
+            const totalScans = state.historyRecords.length;
+            const totalPassed = state.historyRecords.filter(r => r.result === 'pass' || r.result === 'overridden').length;
+            const totalFailed = state.historyRecords.filter(r => r.result === 'fail').length;
+            const passRate = totalScans > 0 ? (totalPassed / totalScans * 100) : 0;
+            const avgConf = totalScans > 0 ? state.historyRecords.reduce((sum, r) => sum + r.confidence, 0) / totalScans : 0;
+
+            document.getElementById('analytics-metrics').innerHTML = `
+                <div class="metric-card">
+                    <div class="text-muted">Total Scanned</div>
+                    <div class="metric-value">${totalScans}</div>
+                    <small class="text-muted">Across all vendors</small>
+                </div>
+                <div class="metric-card">
+                    <div class="text-muted">Passed</div>
+                    <div class="metric-value text-success">${totalPassed}</div>
+                    <small class="text-muted">${passRate.toFixed(1)}% pass rate</small>
+                </div>
+                <div class="metric-card">
+                    <div class="text-muted">Failed</div>
+                    <div class="metric-value text-danger">${totalFailed}</div>
+                    <small class="text-muted">${(100 - passRate).toFixed(1)}% failure rate</small>
+                </div>
+                <div class="metric-card">
+                    <div class="text-muted">Avg Confidence</div>
+                    <div class="metric-value">${avgConf.toFixed(1)}%</div>
+                    <small class="text-muted">Detection accuracy</small>
+                </div>
+            `;
+
+            // Vendor Performance
+            const vendorStats = calculateVendorStats();
+            document.getElementById('vendor-performance-section').innerHTML = `
+                <h3>Vendor Performance Analysis</h3>
+                <p class="text-muted mb-2">Verification statistics and quality ratings by vendor</p>
+                ${vendorStats.map(v => `
+                    <div class="vendor-performance">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div>
+                                <h4>${v.vendor}</h4>
+                                <small class="text-muted">${v.totalScanned} scanned</small>
+                            </div>
+                            <span class="quality-badge quality-${v.passRate >= 85 ? 'high' : 'medium'}">
+                                ${v.passRate >= 85 ? 'Excellent' : 'Good'}
+                            </span>
+                        </div>
+                        <div class="vendor-stats">
+                            <div class="stat-card">
+                                <div class="text-muted">Pass Rate</div>
+                                <div style="font-size: 1.5rem; font-weight: 700;">${v.passRate.toFixed(1)}%</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="text-muted">Passed / Failed</div>
+                                <div style="font-size: 1.5rem; font-weight: 700;">
+                                    <span class="text-success">${v.passed}</span> / <span class="text-danger">${v.failed}</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="text-muted">Avg Confidence</div>
+                                <div style="font-size: 1.5rem; font-weight: 700;">${v.avgConfidence.toFixed(1)}%</div>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${v.passRate}%"></div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function calculateVendorStats() {
+            const vendorMap = new Map();
+            
+            state.historyRecords.forEach(r => {
+                if (!vendorMap.has(r.vendor)) {
+                    vendorMap.set(r.vendor, { vendor: r.vendor, totalScanned: 0, passed: 0, failed: 0, totalConf: 0 });
+                }
+                const stats = vendorMap.get(r.vendor);
+                stats.totalScanned++;
+                stats.totalConf += r.confidence;
+                if (r.result === 'pass' || r.result === 'overridden') stats.passed++;
+                else stats.failed++;
+            });
+
+            return Array.from(vendorMap.values()).map(v => ({
+                ...v,
+                passRate: (v.passed / v.totalScanned) * 100,
+                avgConfidence: v.totalConf / v.totalScanned
+            })).sort((a, b) => b.totalScanned - a.totalScanned);
+        }
+
+        // History
+        function renderHistory() {
+            const tbody = document.getElementById('history-tbody');
+            
+            if (state.historyRecords.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;" class="text-muted">No history records</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = state.historyRecords.map(r => `
+                <tr>
+                    <td>${new Date(r.timestamp).toLocaleString()}</td>
+                    <td>${r.vendor}</td>
+                    <td>${r.lotId}</td>
+                    <td>${r.partNumber}</td>
+                    <td>
+                        <span class="status-badge quality-${r.result === 'pass' || r.result === 'overridden' ? 'high' : 'medium'}">
+                            ${r.result}
+                        </span>
+                    </td>
+                    <td>${Math.round(r.confidence)}%</td>
+                    <td>${r.operator}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Generate dummy data
+        function generateDummyData() {
+            for (let i = 0; i < 15; i++) {
+                const isFail = Math.random() > 0.85;
+                const record = {
+                    id: Date.now() + i,
+                    vendor: vendors[i % vendors.length].name,
+                    lotId: vendors[i % vendors.length].lots[0].lotId,
+                    partNumber: vendors[i % vendors.length].lots[0].partNumber,
+                    result: isFail ? 'fail' : 'pass',
+                    timestamp: new Date(Date.now() - i * 3600000).toISOString(),
+                    operator: 'K. Joshi',
+                    image: isFail ? mockImages[i % mockImages.length] : null,
+                    confidence: 75 + Math.random() * 25
+                };
+                
+                state.historyRecords.push(record);
+                
+                if (isFail) {
+                    state.flaggedItems.push(record);
+                    state.stats.fail++;
+                } else {
+                    state.stats.pass++;
+                }
+            }
+
+            document.getElementById('pass-count').textContent = state.stats.pass;
+            document.getElementById('fail-count').textContent = state.stats.fail;
+            updateQueueBadge();
+        }
+    </script>
+</body>
+</html>

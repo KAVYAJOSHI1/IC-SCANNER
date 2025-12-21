@@ -1,0 +1,6 @@
+Database:CM*bbfTzz*sLi8m
+
+PROJECT URL:https://osklhcposuhotnezihaw.supabase.co
+APIKEY:sb_secret_jnKBUiRAemODAh2VsV09Mw_WRIYFMFO
+
+ANONE KEY:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9za2xoY3Bvc3Vob3RuZXppaGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MjAyODYsImV4cCI6MjA3NjA5NjI4Nn0.gA1Em6frO9o-91vVEVqONYnOWeYUsxs3ASt4qUONLMc
