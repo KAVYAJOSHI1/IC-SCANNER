@@ -1,5 +1,3 @@
-# IC-SCANNER
-IC Scanner is an automated quality control solution designed to detect counterfeit Integrated Circuits (ICs) by analyzing surface markings. Built to integrate seamlessly into large-scale manufacturing conveyor belts, this system replaces manual inspection with high-speed computer vision to ensure hardware integrity and supply chain security.
 # MarkScan AI: Automated IC Defect Detection System
 
 ![Python](https://img.shields.io/badge/Python-3.10-blue?logo=python)
@@ -9,12 +7,18 @@ IC Scanner is an automated quality control solution designed to detect counterfe
 ![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi)
 
 ## 🚀 Overview
-**MarkScan AI** is a computer vision solution designed to automate the quality control process for Integrated Circuits (ICs). It replaces manual visual inspection with an AI-driven system capable of detecting counterfeit or defective IC markings with high precision.
+**MarkScan AI** is an automated quality control solution designed to detect counterfeit Integrated Circuits (ICs) by analyzing surface markings. Built to integrate seamlessly into large-scale manufacturing conveyor belts, this system replaces manual inspection with high-speed computer vision to ensure hardware integrity and supply chain security.
 
-This system was developed to solve supply chain vulnerabilities where counterfeit chips are introduced into critical electronics.
+This system addresses critical supply chain vulnerabilities where counterfeit chips are introduced into sensitive electronics.
+
+## ✨ Key Features
+* **Real-Time Detection:** Uses YOLOv8 to classify ICs as "Perfect" or "Defective" in milliseconds.
+* **Cloud Logging:** Automatically uploads inspection images and metadata to Supabase (PostgreSQL) for audit trails.
+* **Live Dashboard:** React-based UI for operators to view live scans and pass/fail status.
+* **Security:** Prevents "Greenwashing" by creating an immutable record of every chip inspected.
 
 ## 🏗️ Architecture
-The project follows a **Monorepo** structure with a 3-tier architecture:
+The project follows a professional **Monorepo** structure:
 
 ```text
 IC-SCANNER/
