@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 217 33% 25%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 22%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 199 89% 48%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 222 47% 11%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
+
+    --border: 215 28% 27%;
+    --input: 215 28% 27%;
+    --ring: 199 89% 48%;
+
+    --radius: 0.75rem;
+
+    /* Custom AOI theme tokens */
+    --bg-deep: 222 47% 7%;
+    --bg-elevated: 217 33% 19%;
+    --primary-glow: 199 89% 58%;
+    --success-soft: 142 71% 45% / 0.1;
+    --danger-soft: 0 84% 60% / 0.1;
+    --warning-soft: 38 92% 50% / 0.1;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(199 89% 48%), hsl(199 89% 38%));
+    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 35%));
+    --gradient-card: linear-gradient(180deg, hsl(217 33% 19%), hsl(217 33% 15%));
+    
+    /* Shadows */
+    --shadow-glow: 0 0 40px hsl(199 89% 48% / 0.2);
+    --shadow-card: 0 4px 6px -1px hsl(222 47% 7% / 0.3), 0 2px 4px -1px hsl(222 47% 7% / 0.2);
+    --shadow-lg: 0 10px 15px -3px hsl(222 47% 7% / 0.3), 0 4px 6px -2px hsl(222 47% 7% / 0.2);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-success {
+    background: var(--gradient-success);
+  }
+  
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+  
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  
+  .shadow-lg-custom {
+    box-shadow: var(--shadow-lg);
+  }
+}
