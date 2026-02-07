@@ -31,6 +31,7 @@ export const InspectionDashboard = ({ currentLot, stats, onAddRecord }: Inspecti
   const hasStartedProcessing = useRef(false);
   const objectUrls = useRef<string[]>([]);
   const isManualMode = !currentLot;
+  const API_URL = "http://localhost:8000/predict/";
 
   // --- AUTO-SCAN useEffect with FULL FormData ---
   useEffect(() => {
@@ -59,13 +60,13 @@ export const InspectionDashboard = ({ currentLot, stats, onAddRecord }: Inspecti
         formData.append("operator", "System Auto");
 
         try {
-          const response = await fetch('https://ic-scanner-api.onrender.com/predict/', {  method: "POST", body: formData });
+          const response = await fetch(API_URL, { method: "POST", body: formData });
 
           if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.detail || `API call failed for ${file.name}`);
           }
-          
+
           const data: ApiResponse = await response.json();
           let result: "pass" | "fail" = "fail";
           let confidence = 0;
@@ -77,22 +78,51 @@ export const InspectionDashboard = ({ currentLot, stats, onAddRecord }: Inspecti
           }
 
           setScanResult({ result, confidence, marking: `${currentLot.partNumber}\nLOT: ${currentLot.lotId}` });
-          
+
           const record: InspectionRecord = {
-            id: Date.now() + i, vendor: currentLot.vendor, lotId: currentLot.lotId, partNumber: currentLot.partNumber,
-            result, timestamp: new Date().toISOString(), operator: "System Auto", image: imageUrl, confidence,
+            id: Date.now() + i,
+            vendor: currentLot.vendor,
+            lot_id: currentLot.lotId,
+            part_number: currentLot.partNumber,
+            result,
+            created_at: new Date().toISOString(),
+            operator: "System Auto",
+            image_url: imageUrl,
+            confidence: confidence / 100, // Normalized to 0-1 if backend returns 0-1, but here confidence is 0-100. Wait, interface probably expects 0-1 or 0-100?
+            // Checking HistoryLog: `Math.round(record.confidence * 100)` implies record.confidence is 0-1.
+            // But here `confidence` var is `topDetection.confidence * 100`.
+            // So I should store `topDetection.confidence` (0-1) in the record.
           };
-          onAddRecord(record);
-        
+          // Correcting confidence storage:
+          const recordCorrected: InspectionRecord = {
+            id: Date.now() + i,
+            vendor: currentLot.vendor,
+            lot_id: currentLot.lotId,
+            part_number: currentLot.partNumber,
+            result,
+            created_at: new Date().toISOString(),
+            operator: "System Auto",
+            image_url: imageUrl,
+            confidence: confidence / 100,
+          };
+          onAddRecord(recordCorrected);
+
         } catch (error) {
           console.error("Error processing file:", file.name, error);
           const errorRecord: InspectionRecord = {
-            id: Date.now() + i, vendor: currentLot.vendor, lotId: currentLot.lotId, partNumber: currentLot.partNumber,
-            result: 'fail', timestamp: new Date().toISOString(), operator: 'System Auto', image: imageUrl, confidence: 0,
+            id: Date.now() + i,
+            vendor: currentLot.vendor,
+            lot_id: currentLot.lotId,
+            part_number: currentLot.partNumber,
+            result: 'fail',
+            created_at: new Date().toISOString(),
+            operator: 'System Auto',
+            image_url: imageUrl,
+            confidence: 0,
           };
           onAddRecord(errorRecord);
         }
-        
+
         setAutoProgress(((i + 1) / totalFiles) * 100);
         await new Promise(resolve => setTimeout(resolve, 500));
       }
@@ -122,7 +152,7 @@ export const InspectionDashboard = ({ currentLot, stats, onAddRecord }: Inspecti
     if (!imageFile) return alert("Please upload an image first.");
     setIsScanning(true);
     setScanResult(null);
-    
+
     const formData = new FormData();
     formData.append("file", imageFile);
     // --- CHANGE: ADDING REQUIRED METADATA FOR MANUAL SCANS ---
@@ -132,7 +162,7 @@ export const InspectionDashboard = ({ currentLot, stats, onAddRecord }: Inspecti
     formData.append("operator", "K. Joshi");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/predict/", { method: "POST", body: formData });
+      const response = await fetch(API_URL, { method: "POST", body: formData });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -162,9 +192,15 @@ export const InspectionDashboard = ({ currentLot, stats, onAddRecord }: Inspecti
   const handleMarkResult = (decision: "pass" | "fail") => {
     if (!scanResult) return;
     const record: InspectionRecord = {
-      id: Date.now(), vendor: "Manual", lotId: "N/A", partNumber: "N/A",
-      result: decision, timestamp: new Date().toISOString(), operator: "K. Joshi",
-      image: uploadedImage || undefined, confidence: scanResult?.confidence || 0,
+      id: Date.now(),
+      vendor: "Manual",
+      lot_id: "N/A",
+      part_number: "N/A",
+      result: decision,
+      created_at: new Date().toISOString(),
+      operator: "K. Joshi",
+      image_url: uploadedImage || undefined,
+      confidence: scanResult.confidence / 100, // Normalize back to 0-1
     };
     onAddRecord(record);
     setUploadedImage(null);
@@ -187,7 +223,7 @@ export const InspectionDashboard = ({ currentLot, stats, onAddRecord }: Inspecti
               </div>
             </CardHeader>
           </Card>
-          
+
           {isManualMode ? (
             <Card className="shadow-card border-border">
               <CardContent className="pt-6">
@@ -217,7 +253,7 @@ export const InspectionDashboard = ({ currentLot, stats, onAddRecord }: Inspecti
               <CardHeader><CardTitle className="text-base">Captured Image</CardTitle></CardHeader>
               <CardContent>
                 <div className="aspect-square bg-black rounded-lg flex items-center justify-center border border-border">
-                  {uploadedImage ? (<img src={uploadedImage} alt="Captured IC" className="max-w-full max-h-full object-contain rounded-lg" />) : ( <span className="text-muted-foreground">Awaiting scan</span> )}
+                  {uploadedImage ? (<img src={uploadedImage} alt="Captured IC" className="max-w-full max-h-full object-contain rounded-lg" />) : (<span className="text-muted-foreground">Awaiting scan</span>)}
                 </div>
               </CardContent>
             </Card>
@@ -234,7 +270,7 @@ export const InspectionDashboard = ({ currentLot, stats, onAddRecord }: Inspecti
           {scanResult && (
             <Card className={`shadow-card border-2 ${scanResult.result === "pass" ? "border-success bg-success/5" : "border-destructive bg-destructive/5"}`}>
               <CardContent className="pt-6 text-center">
-                {scanResult.result === "pass" ? ( <CheckCircle2 className="w-16 h-16 text-success mx-auto mb-4" /> ) : ( <XCircle className="w-16 h-16 text-destructive mx-auto mb-4" /> )}
+                {scanResult.result === "pass" ? (<CheckCircle2 className="w-16 h-16 text-success mx-auto mb-4" />) : (<XCircle className="w-16 h-16 text-destructive mx-auto mb-4" />)}
                 <h3 className="text-2xl font-bold mb-2">{scanResult.result === "pass" ? "✓ Genuine" : "✗ Counterfeit"}</h3>
                 <p className="text-muted-foreground">Confidence: {Math.round(scanResult.confidence)}%</p>
               </CardContent>

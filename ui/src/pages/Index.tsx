@@ -9,7 +9,6 @@ import { HistoryLog } from "@/components/inspection/HistoryLog";
 import { Analytics } from "@/components/inspection/Analytics";
 import { NewLotForm } from "@/components/inspection/NewLotForm";
 import { Scan, History, Flag, Layers, BarChart3, Home } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
 
 type Page = "home" | "hub" | "new-lot" | "inspection" | "flagged" | "history" | "analytics";
 
@@ -38,18 +37,21 @@ const Index = () => {
   const [historyRecords, setHistoryRecords] = useState<InspectionRecord[]>([]);
   const [currentLot, setCurrentLot] = useState<Lot | null>(null);
 
-  // FETCH data from Supabase when the component first loads
+  const API_BASE_URL = "http://localhost:8000";
+
+  // FETCH data from Local Backend when the component first loads
   useEffect(() => {
     const fetchRecords = async () => {
-      const { data, error } = await supabase
-        .from('inspection_records')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error("Error fetching records:", error);
-      } else if (data) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/inspection_records`);
+        if (!response.ok) {
+          console.error("Failed to fetch records");
+          return;
+        }
+        const data = await response.json();
         setHistoryRecords(data);
+      } catch (error) {
+        console.error("Error fetching records:", error);
       }
     };
     fetchRecords();
@@ -73,17 +75,24 @@ const Index = () => {
 
   const handleFlaggedAction = async (itemId: number, action: "approve" | "reject") => {
     if (action === "approve") {
-      const { error } = await supabase
-        .from('inspection_records')
-        .update({ result: 'overridden' })
-        .eq('id', itemId);
+      try {
+        const response = await fetch(`${API_BASE_URL}/inspection_records/${itemId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ result: 'overridden' }),
+        });
 
-      if (error) {
+        if (!response.ok) {
+          console.error("Error updating record:", await response.text());
+        } else {
+          setHistoryRecords((prev) =>
+            prev.map((record) => (record.id === itemId ? { ...record, result: "overridden" as const } : record))
+          );
+        }
+      } catch (error) {
         console.error("Error updating record:", error);
-      } else {
-        setHistoryRecords((prev) =>
-          prev.map((record) => (record.id === itemId ? { ...record, result: "overridden" as const } : record))
-        );
       }
     }
     // Note: 'reject' does nothing to the database, it just visually removes it from the queue if needed.
