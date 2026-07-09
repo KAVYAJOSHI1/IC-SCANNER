@@ -1,104 +1,194 @@
-# MarkScan AI - IC Validation System
+# IC Scanner (MarkScan AI)
 
-**MarkScan AI** is an advanced computer vision solution designed to verify the authenticity of Integrated Circuits (ICs) using deep learning. It automates the inspection process, detecting counterfeit components by analyzing their markings against known genuine patterns.
+A computer vision system that inspects Integrated Circuit (IC) surface markings with a YOLOv8 model and flags counterfeit or defective parts.
 
-## 🚀 Features
+![FastAPI](https://img.shields.io/badge/FastAPI-backend-009688?logo=fastapi&logoColor=white)
+![YOLOv8](https://img.shields.io/badge/Ultralytics-YOLOv8-00FFFF)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-Vite-3178C6?logo=typescript&logoColor=white)
 
-- **Automated Defect Detection**: powered by **YOLOv8** for high-accuracy identification of counterfeit markings.
-- **Local-First Architecture**: Completely offline-capable with a local SQLite database and file storage. No cloud dependencies required.
-- **Real-time Analytics**: Interactive dashboard tracking pass/fail rates, vendor performance, and defect trends.
-- **Dual Mode Operation**: 
-  - **Manual Mode**: Upload single images for quick verification.
-  - **Auto Scan Mode**: Simulates batch processing for high-volume inspection.
-- **Detailed History**: Full audit trail of all inspections with searchable logs and image evidence.
+## Table of Contents
 
-## 🛠️ Tech Stack
+- [Overview](#overview)
+- [Problem Statement](#problem-statement)
+- [Solution](#solution)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [System Workflow](#system-workflow)
+- [Installation](#installation)
+- [Running Locally](#running-locally)
+- [API Documentation](#api-documentation)
+- [Author](#author)
 
-- **Frontend**: React (Vite), Tailwind CSS, Lucide Icons, Shadcn UI
-- **Backend**: Python (FastAPI), Ultralytics YOLOv8, OpenCV, SQLite
-- **AI Model**: Custom trained YOLOv8 model for IC surface defect detection
+## Overview
 
-## 🏁 Quick Start
+IC Scanner (branded in the app as MarkScan AI) uploads a photo of an integrated circuit, runs it through a custom-trained YOLOv8 model, and classifies it as "Perfect" or "Defective" with a confidence score. Every inspection is logged locally so results can be reviewed, overridden, and analyzed later. Built for an internal hackathon at GLS University.
 
-### Prerequisites
-- Python 3.8+
-- Node.js & npm
+## Problem Statement
 
-### Automatic Setup (Recommended)
+Counterfeit and defective ICs are a real supply-chain risk on manufacturing lines: mismarked or substandard chips can pass a manual visual check and end up in finished products. Manual inspection doesn't scale to high-volume lots and produces no searchable audit trail.
 
-We have provided convenience scripts to get you up and running quickly.
+## Solution
 
-1. **Start the Backend Server**:
-   ```bash
-   chmod +x start_backend.sh
-   ./start_backend.sh
-   ```
-   This will create a virtual environment, install Python dependencies, and launch the API at `http://localhost:8000`.
+A FastAPI backend loads a YOLOv8 model once at startup. Each uploaded image is run through the model, saved to local disk, and logged to a SQLite database along with vendor, lot, and part metadata. The React frontend gives an operator a home screen, a vendor/lot intake flow, an inspection screen for running scans, a flagged queue for reviewing failures, a history log, and an analytics view, all reading from the same local API.
 
-2. **Start the Frontend UI**:
-   Open a new terminal window and run:
-   ```bash
-   chmod +x start_frontend.sh
-   ./start_frontend.sh
-   ```
-   The application will be available at `http://localhost:8080`.
+## Features
 
-### Manual Setup
+| Area | Capability |
+|---|---|
+| Manual Inspection | Upload a single IC image and get a Perfect/Defective classification with a confidence score |
+| Vendor & Lot Intake | Record vendor, lot ID, part number, and operator before scanning |
+| Inspection History | Every scan is persisted with its image, result, and confidence |
+| Flagged Queue | Failed inspections surface separately so an operator can approve (override to pass) or dismiss them |
+| Override Audit | Overriding a flagged result updates the stored record via the API rather than just hiding it in the UI |
+| Analytics | Dashboard view over the full inspection history (pass/fail counts, trends) |
+| Local-First Storage | Images and records are stored on local disk/SQLite; no cloud dependency in the active code path |
 
-<details>
-<summary>Click to expand manual instructions</summary>
+## Architecture
 
-#### Backend
-```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
-pip install -r requirements.txt
-python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```mermaid
+flowchart LR
+    UI["React + Vite frontend\nHome, Vendor Hub, Inspection, Flagged Queue, History, Analytics"]
+
+    subgraph Backend["FastAPI (backend/main.py)"]
+        PREDICT["POST /predict/"]
+        RECORDS["GET /inspection_records"]
+        UPDATE["PUT /inspection_records/{id}"]
+        MODEL["YOLOv8 model (best.pt)\nvia Ultralytics"]
+    end
+
+    FILES[("static/uploads/\nsaved scan images")]
+    DB[("SQLite: inspection.db")]
+
+    UI -- "fetch()" --> PREDICT
+    UI -- "fetch()" --> RECORDS
+    UI -- "fetch()" --> UPDATE
+    PREDICT --> MODEL
+    PREDICT --> FILES
+    PREDICT --> DB
+    RECORDS --> DB
+    UPDATE --> DB
 ```
 
-#### Frontend
-```bash
-cd ui
-npm install
-npm run dev
-```
-</details>
+`database/schema.sql` defines an equivalent Postgres table for a Supabase-backed deployment, and the frontend includes a Supabase client (`ui/src/lib/supabaseClient.ts`), but neither is wired into the app's current data flow: the UI talks directly to the local FastAPI backend.
 
-## 📂 Project Structure
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend framework | FastAPI, Uvicorn |
+| Computer vision | Ultralytics YOLOv8, OpenCV (`opencv-python-headless`), PyTorch/torchvision (CPU) |
+| Database | SQLite (local), with a Postgres/Supabase schema available as an alternative |
+| Frontend | React 18, TypeScript, Vite |
+| UI components | shadcn/ui (Radix primitives), Tailwind CSS, Lucide icons |
+| Data/forms | TanStack Query, React Hook Form, Zod |
+
+## Project Structure
 
 ```
 IC-SCANNER/
 ├── backend/
-│   ├── main.py              # FastAPI server & business logic
-│   ├── inspection.db        # Local SQLite database
-│   ├── best.pt              # Trained YOLOv8 model
-│   └── static/uploads/      # Local storage for inspection images
+│   ├── main.py               # FastAPI app: predict, inspection_records endpoints
+│   ├── best.pt                # Trained YOLOv8 model weights
+│   ├── inspection.db          # Local SQLite database
+│   ├── static/uploads/        # Saved scan images
+│   └── requirements.txt
 ├── ui/
-│   ├── src/                 # React source code
-│   │   ├── components/      # UI components (Dashboard, History, etc.)
-│   │   └── pages/           # Application views
-│   └── public/              # Static assets
-└── database/
-    └── schema.sql           # Database schema reference
+│   ├── src/
+│   │   ├── pages/Index.tsx    # Top-level screen state & navigation
+│   │   ├── components/inspection/
+│   │   │   ├── HomePage.tsx
+│   │   │   ├── VendorHub.tsx
+│   │   │   ├── NewLotForm.tsx
+│   │   │   ├── InspectionDashboard.tsx
+│   │   │   ├── FlaggedQueue.tsx
+│   │   │   ├── HistoryLog.tsx
+│   │   │   └── Analytics.tsx
+│   │   ├── components/ui/     # shadcn/ui component library
+│   │   └── lib/supabaseClient.ts  # Present but not currently used by the app
+│   └── package.json
+├── database/
+│   └── schema.sql             # Postgres/Supabase reference schema (alternative to SQLite)
+├── start_backend.sh           # Creates venv, installs deps, runs uvicorn
+├── start_frontend.sh          # npm install + vite dev server
+└── README.md
 ```
 
-## 🔍 How to Use
+## System Workflow
 
-1. **Launch the App**: Open your browser to the frontend URL.
-2. **Start Inspection**:
-   - Go to **Inspection Hub**.
-   - Select **Manual Scan** to upload an image of an IC.
-   - Click **Scan & Verify** to run the AI analysis.
-3. **Review Results**:
-   - The system will flag the IC as "Genuine" or "Counterfeit" with a confidence score.
-   - You can manually override results if necessary.
-4. **Analyze Trends**:
-   - Visit the **Analytics** tab to see inspection statistics by vendor and lot.
+Example: running a manual inspection end to end.
 
-## 🤝 Contributing
+```mermaid
+sequenceDiagram
+    participant O as Operator (UI)
+    participant F as FastAPI (main.py)
+    participant Y as YOLOv8 model
+    participant DB as SQLite
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+    O->>F: POST /predict/ (image, vendor, lotId, partNumber, operator)
+    F->>Y: model.predict(image)
+    Y-->>F: detections (label, confidence)
+    F->>F: Save image to static/uploads/
+    F->>DB: INSERT inspection_records (result, confidence, ...)
+    F-->>O: top detection (Perfect/Defective + confidence)
+    O->>F: GET /inspection_records (History / Analytics / Flagged Queue)
+    F->>DB: SELECT * ORDER BY created_at DESC
+    F-->>O: full inspection history
+```
 
----
-*Built for the Smart India Hackathon (SIH) - Hardware Edition*
+## Installation
+
+```bash
+git clone https://github.com/KAVYAJOSHI1/IC-SCANNER.git
+cd IC-SCANNER
+
+# Backend
+cd backend
+python3 -m venv venv
+source venv/bin/activate      # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
+# Frontend
+cd ../ui
+npm install
+```
+
+## Running Locally
+
+```bash
+# Backend (from repo root)
+chmod +x start_backend.sh
+./start_backend.sh
+# Serves the API at http://localhost:8000
+
+# Frontend (separate terminal, from repo root)
+chmod +x start_frontend.sh
+./start_frontend.sh
+# Serves the UI at http://localhost:8080
+```
+
+Or run each side manually:
+
+```bash
+cd backend && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+cd ui && npm run dev
+```
+
+## API Documentation
+
+All endpoints are defined in `backend/main.py`.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/` | Health check |
+| POST | `/predict/` | Upload an IC image with vendor/lot/part/operator metadata; runs YOLOv8 and stores the result |
+| GET | `/inspection_records` | List all inspection records, newest first |
+| PUT | `/inspection_records/{record_id}` | Update a record's result (e.g. override a flagged inspection to pass) |
+
+Uploaded images are served statically from `/uploads/<filename>`.
+
+## Author
+
+Built by Kavya Joshi.
